@@ -18,11 +18,9 @@ def deriv(y, t, L1, L2, m1, m2):
     c, s = np.cos(theta1-theta2), np.sin(theta1-theta2)
 
     theta1dot = z1
-    z1dot = (m2*g*np.sin(theta2)*c - m2*s*(L1*z1**2*c + L2*z2**2) -
-             (m1+m2)*g*np.sin(theta1)) / L1 / (m1 + m2*s**2)
+    z1dot = (m2*g*np.sin(theta2)*c - m2*s*(L1*z1**2*c + L2*z2**2) - (m1+m2)*g*np.sin(theta1)) / L1 / (m1 + m2*s**2)
     theta2dot = z2
-    z2dot = ((m1+m2)*(L1*z1**2*s - g*np.sin(theta2) + g*np.sin(theta1)*c) +
-             m2*L2*z2**2*s*c) / L2 / (m1 + m2*s**2)
+    z2dot = ((m1+m2)*(L1*z1**2*s - g*np.sin(theta2) + g*np.sin(theta1)*c) + m2*L2*z2**2*s*c) / L2 / (m1 + m2*s**2)
     return theta1dot, z1dot, theta2dot, z2dot
 
 def calc_E(y):
@@ -38,7 +36,7 @@ def make_plot(i):
     # Plot and save an image of the double pendulum configuration for time
     # point i.
     # The pendulum rods.
-    ax.plot([0, xe1[i], xe2[i]], [0, ye1[i], ye2[i]], lw=2, c='k')
+    ax.plot([0, xe1[i], xe2[i]], [0, ye1[i], ye2[i]], lw=2, c='dimgrey')
     ax.plot([0, x1[i], x2[i]], [0, y1[i], y2[i]], lw=2, c='k')
     # Circles representing the anchor point of rod 1, and bobs 1 and 2.
     c0 = Circle((0, 0), r1/2, fc='k', zorder=10)
@@ -74,12 +72,9 @@ def make_plot(i):
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 
     # place a text box in upper left in axes coords
-    elements = {"Tick": f"{i:,}", "\N{Greek small letter epsilon}1": f"{args.et1}", "\N{Greek small letter epsilon}2": f"{args.et2}"}
-    textstr="\n".join([f"{k} : {v}" for k, v in elements.items()])
-    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    plt.title("Compound pendulums")
+    plt.title("Compound Pendulum")
     plt.grid()
-    plt.savefig(f'frames/_img{i//di:04d}.png', dpi=72)
+    plt.savefig(f'frames/_img{i//di:04d}.png', dpi=args.dpi)
     plt.cla()
 
 
@@ -87,7 +82,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description="Simulation of compound pendulum", epilog="SnowyUK 2021")
     ap.add_argument("--output", metavar="directory", default=f"frames_{datetime.datetime.now():'%Y-%m-%d_%h_%m_%s'}")
     ap.add_argument("--nuke", action="store_true", help="Delete any files in output directory")
-    ap.add_argument("--duration", metavar="seconds", type=float, help="Duration of animation", default=120.0)
+    ap.add_argument("--duration", metavar="seconds", type=float, help="Duration of animation", default=60.0)
     ap.add_argument("--l1", metavar="m", type=float, default=1.0, help="Length of first rod")
     ap.add_argument("--l2", metavar="m", type=float, default=1.0, help="Length of second rod")
     ap.add_argument("--m1", metavar="kg", type=float, default=1.0, help="Mass of first weight")
@@ -95,6 +90,8 @@ if __name__ == '__main__':
     ap.add_argument("--dt", metavar="s", type=float, default=0.01, help="Time point spacings")
     ap.add_argument("--et1", metavar="value", type=float, default=1e-6, help="Error in \N{Greek small letter theta}1")
     ap.add_argument("--et2", metavar="value", type=float, default=0.000, help="Error in \N{Greek small letter theta}2")
+    ap.add_argument("--fps", metavar="n", type=int, default=20, help="Number of video frames per second")
+    ap.add_argument("--dpi", metavar="n", type=int, default=150, help="Dots per inch for PNG output")
     args = ap.parse_args()
     # Pendulum rod lengths (m), bob masses (kg).
     g = 9.81
@@ -103,8 +100,8 @@ if __name__ == '__main__':
     tmax, dt = args.duration, args.dt
     t = np.arange(0, tmax+dt, dt)
     # Initial conditions: theta1, dtheta1/dt, theta2, dtheta2/dt.
-    y0 = np.array([3*np.pi/5, 0, 3*np.pi/4, 0])
-    ye0 = np.array([3*np.pi*(1+args.et1)/5, 0, 3*np.pi*(1+args.et2)/4, 0])
+    y0 = np.array([np.pi, 0, 7*np.pi/8, 0])
+    ye0 = np.array([np.pi*(1+args.et1), 0, 7*np.pi*(1+args.et2)/8, 0])
 
 
     # Do the numerical integration of the equations of motion
@@ -139,9 +136,9 @@ if __name__ == '__main__':
     # Make an image every di time points, corresponding to a frame rate of fps
     # frames per second.
     # Frame rate, s-1
-    fps = 10
+    fps = args.fps
     di = int(1/fps/dt)
-    fig = plt.figure(figsize=(8.3333, 6.25), dpi=72)
+    fig = plt.figure(figsize=(8.3333, 6.25), dpi=args.dpi)
     ax = fig.add_subplot(111)
 
     for i in range(0, t.size, di):
